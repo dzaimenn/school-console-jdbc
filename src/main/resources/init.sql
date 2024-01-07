@@ -1,24 +1,4 @@
--- CREATE USER school_manager WITH PASSWORD '1234';
---
--- CREATE DATABASE school_db;
---
--- GRANT ALL PRIVILEGES ON DATABASE school_db TO school_manager;
--- Проверка существования роли перед созданием
-DO $$
-    BEGIN
-        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'school_manager') THEN
-            CREATE USER school_manager WITH PASSWORD '0017';
-        END IF;
-    END $$;
-
-
-CREATE DATABASE school_db;
-
-GRANT ALL PRIVILEGES ON DATABASE school_db TO school_manager;
-
-SET search_path TO school_db, public;
-
-CREATE SCHEMA student_management;
+CREATE SCHEMA IF NOT EXISTS student_management;
 
 DROP TABLE IF EXISTS student_courses;
 DROP TABLE IF EXISTS groups;
@@ -53,7 +33,3 @@ CREATE TABLE student_courses
     course_id  INT REFERENCES courses (course_id),
     CONSTRAINT student_courses_pk PRIMARY KEY (student_id, course_id)
 );
-
-REVOKE ALL PRIVILEGES ON DATABASE school_db FROM school_manager;
-DROP DATABASE IF EXISTS school_db;
-DROP USER IF EXISTS school_manager;

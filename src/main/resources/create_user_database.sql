@@ -1,0 +1,5 @@
+CREATE USER school_manager WITH PASSWORD '0017';
+
+CREATE DATABASE school_db;
+
+GRANT ALL PRIVILEGES ON DATABASE school_db TO school_manager;
