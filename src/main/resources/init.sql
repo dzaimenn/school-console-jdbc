@@ -1,4 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS student_management;
 
 DROP TABLE IF EXISTS student_courses;
 DROP TABLE IF EXISTS groups;
