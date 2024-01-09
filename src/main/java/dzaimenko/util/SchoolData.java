@@ -2,7 +2,12 @@ package dzaimenko;
 
 import java.util.Random;
 
-public class Data {
+public class SchoolData {
+
+    private SchoolData() {
+
+    }
+
     public static final Random random = new Random();
     public static final String[] firstNamesArray = {"John", "Emma", "Michael", "Sophia", "William",
             "Olivia", "James", "Ava", "Robert", "Mia", "David", "Isabella", "Joseph",
@@ -50,5 +55,6 @@ public class Data {
             groupsNames[i] = String.valueOf(letter1) + letter2 + "-" + number1 + number2;
         }
     }
+
 
 }
