@@ -9,6 +9,7 @@ import java.util.Scanner;
 public class DatabaseManager {
 
     private final Connection connection;
+    private int totalStudents;
 
     Scanner scanner = new Scanner(System.in);
 
@@ -68,11 +69,12 @@ public class DatabaseManager {
 
             try (ResultSet rs = ps.executeQuery()) {
 
-                int groupId = rs.getInt("group_id");
-                String groupName = rs.getString("group_name");
-                int studentCount = rs.getInt("student_count");
-
                 while (rs.next()) {
+
+                    int groupId = rs.getInt("group_id");
+                    String groupName = rs.getString("group_name");
+                    int studentCount = rs.getInt("student_count");
+
                     System.out.println("Group ID: " + groupId + ", Group Name: " + groupName + ", Student Count: " + studentCount);
                 }
             }
@@ -83,9 +85,7 @@ public class DatabaseManager {
 
     public void findStudentsByCourseName() {
 
-        for (int i = 0; i < 10; i++) {
-            System.out.println((i + 1) + ". " + SchoolData.coursesNames[i]);
-        }
+        showAllCourses();
 
         String prompt = "Enter course number:";
         String course = SchoolData.coursesNames[(validateNumericInput(scanner, prompt, 1, 10) - 1)];
@@ -150,16 +150,173 @@ public class DatabaseManager {
         }
     }
 
-    public void deleteStudentById() {
+    private int getNumberOfStudents() {
+        String sql = "SELECT COUNT(*) AS total_students FROM students";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
 
+                if (rs.next()) {
+                    totalStudents = rs.getInt("total_students");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return totalStudents;
+    }
+
+    public void deleteStudentById() {
+        getNumberOfStudents();
+        showAllStudents();
+        String prompt = "Enter the ID of the student to be removed (from 1 to " + totalStudents + "):";
+
+        System.out.println("The school has " + totalStudents + " students");
+
+        String sql = """
+                WITH deleted_student_courses AS (
+                    DELETE FROM student_courses
+                    WHERE student_id = ?
+                    RETURNING *
+                )
+                DELETE FROM students
+                WHERE student_id = ?;;
+                """;
+
+        int idStudentToDelete = validateNumericInput(scanner, prompt, 1, totalStudents);
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, idStudentToDelete);
+            ps.setInt(2, idStudentToDelete);
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("Deleted student");
+            } else {
+                System.out.println("Failed to delete student");
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void showAllStudents() {
+        String sql = "SELECT * FROM students";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+                    int studentId = rs.getInt("student_id");
+                    String firstName = rs.getString("first_name");
+                    String lastName = rs.getString("last_name");
+
+                    System.out.println("ID: " + studentId + ", Student: " + firstName + " " + lastName);
+                }
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void showAllCourses() {
+        for (int i = 0; i < 10; i++) {
+            System.out.println((i + 1) + ". " + SchoolData.coursesNames[i]);
+        }
     }
 
     public void addStudentToCourse() {
+        getNumberOfStudents();
+        showAllStudents();
+
+        String promptStudentAdd = "Enter the student ID to add to the course:";
+        int idStudentToAddToCourse = validateNumericInput(scanner, promptStudentAdd, 1, totalStudents);
+
+        String promptCourseAdd = "Enter course number:";
+        showAllCourses();
+        int idCourse = validateNumericInput(scanner, promptCourseAdd, 1, 10);
+
+        String sql = """
+                INSERT INTO student_courses (student_id, course_id)
+                VALUES (?, ?);
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, idStudentToAddToCourse);
+            ps.setInt(2, idCourse);
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("Student successfully added to the course");
+            } else {
+                System.out.println("Failed to add student to the course");
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
-    public void removeStudentFromCourse() {
+    private void showCoursesForStudent(int studentId) {
+        String sqlSelectCourses = """
+                SELECT courses.course_id, courses.course_name
+                FROM student_courses
+                JOIN courses ON student_courses.course_id = courses.course_id
+                WHERE student_courses.student_id = ?;
+                """;
 
+        try (PreparedStatement psSelectCourses = connection.prepareStatement(sqlSelectCourses)) {
+            psSelectCourses.setInt(1, studentId);
+
+            ResultSet resultSet = psSelectCourses.executeQuery();
+
+            while (resultSet.next()) {
+                System.out.println(resultSet.getInt("course_id") + ". "
+                                   + resultSet.getString("course_name"));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void removeStudentFromCourse() {
+        getNumberOfStudents();
+        showAllStudents();
+
+        String promptStudentRemove = "Enter the student ID to remove from the course:";
+        int idStudentToRemoveFromCourse = validateNumericInput(scanner, promptStudentRemove, 1, totalStudents);
+
+        String promptCourseRemove = "Enter course ID:";
+        showCoursesForStudent(idStudentToRemoveFromCourse);
+        int idCourse = validateNumericInput(scanner, promptCourseRemove, 1, 10);
+
+        String sql = """
+                DELETE FROM student_courses
+                WHERE student_id = ? AND course_id = ?;
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, idStudentToRemoveFromCourse);
+            ps.setInt(2, idCourse);
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("Student successfully removed from the course");
+            } else {
+                System.out.println("Failed to remove student from the course");
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void shutdown() {
