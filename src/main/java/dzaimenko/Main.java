@@ -1,5 +1,8 @@
 package dzaimenko;
 
+import dzaimenko.dao.CourseDAO;
+import dzaimenko.dao.DatabaseManager;
+import dzaimenko.dao.impl.CourseDAOImpl;
 import dzaimenko.util.DatabaseConnector;
 
 import java.io.BufferedReader;
@@ -13,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class RunApp {
+public class Main {
 
     private static final String MAIN_MENU_REQUEST = """
             ______________________________________________________________
@@ -39,9 +42,10 @@ public class RunApp {
              Scanner scanner = new Scanner(System.in)) {
 
             DatabaseManager databaseManager = new DatabaseManager(connection);
+            CourseDAO courseDAO = new CourseDAOImpl(connection);
 
             Map<Integer, Runnable> options = new HashMap<>();
-            options.put(1, databaseManager::findGroupsByMaxStudentsCount);
+            options.put(1, courseDAO::findGroupsByMaxStudentsCount);
             options.put(2, databaseManager::findStudentsByCourseName);
             options.put(3, databaseManager::addNewStudent);
             options.put(4, databaseManager::deleteStudentById);
@@ -60,7 +64,7 @@ public class RunApp {
     }
 
     private static void executeSqlScript(Statement statement, String sqlScriptPath) throws IOException, SQLException {
-        InputStream inputStream = RunApp.class.getResourceAsStream(sqlScriptPath);
+        InputStream inputStream = Main.class.getResourceAsStream(sqlScriptPath);
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         StringBuilder sqlScript = new StringBuilder();
         String line;

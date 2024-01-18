@@ -1,10 +1,10 @@
 package dzaimenko;
 
+import dzaimenko.model.Group;
+import dzaimenko.model.Student;
 import dzaimenko.util.SchoolData;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -18,25 +18,34 @@ public class DatabaseFiller {
     }
 
     public void fillDataBase() {
-
-            groupsTableFill();
-            studentsTableFill();
-            coursesTableFill();
-            studentsCoursesTableFill();
+        groupsTableFill();
+        studentsTableFill();
+        coursesTableFill();
+        studentsCoursesTableFill();
     }
 
     private void groupsTableFill() {
 
+        String insertGroupsQuery = "INSERT INTO groups (group_name) VALUES (?)";
 
-        String sql = "INSERT INTO groups (group_name) VALUES (?)";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(insertGroupsQuery, Statement.RETURN_GENERATED_KEYS)) {
             for (int i = 0; i < 10; i++) {
-                ps.setString(1, SchoolData.groupsNames[i]);
 
-                ps.execute();
+                String groupName = SchoolData.groupsNames[i];
+
+                Group group = new Group(groupName);
+
+                ps.setString(1, group.getGroupName());
+                ps.executeUpdate();
+
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        group.setGroupId(rs.getInt(1));
+                    } else {
+                        throw new SQLException("Failed to retrieve generated keys.");
+                    }
+                }
             }
-
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -45,15 +54,30 @@ public class DatabaseFiller {
 
     private void studentsTableFill() {
 
-        String sql = "INSERT INTO students (group_id, first_name, last_name) VALUES (?, ?, ?)";
+        String insertStudentsQuery = "INSERT INTO students (group_id, first_name, last_name) VALUES (?, ?, ?)";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(insertStudentsQuery, Statement.RETURN_GENERATED_KEYS)) {
             for (int i = 1; i <= 200; i++) {
-                ps.setInt(1, SchoolData.random.nextInt(10) + 1);
-                ps.setString(2, SchoolData.firstNamesArray[random.nextInt(20)]);
-                ps.setString(3, SchoolData.lastNamesArray[random.nextInt(20)]);
 
-                ps.execute();
+                int groupId = random.nextInt(10) + 1;
+                String firstName = SchoolData.firstNamesArray[random.nextInt(20)];
+                String lastName = SchoolData.lastNamesArray[random.nextInt(20)];
+
+                Student student = new Student(groupId, firstName, lastName);
+
+                ps.setInt(1, student.getGroupId());
+                ps.setString(2, student.getFirstName());
+                ps.setString(3, student.getLastName());
+
+                ps.executeUpdate();
+
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        student.setStudentId(rs.getInt(1));
+                    } else {
+                        throw new SQLException("Failed to retrieve generated keys.");
+                    }
+                }
             }
 
         } catch (SQLException e) {
@@ -63,10 +87,9 @@ public class DatabaseFiller {
 
     private void coursesTableFill() {
 
+        String insertCoursesQuery = "INSERT INTO courses (course_name, course_description) VALUES (?,?)";
 
-        String sql = "INSERT INTO courses (course_name, course_description) VALUES (?,?)";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(insertCoursesQuery)) {
             for (int i = 0; i < 10; i++) {
                 ps.setString(1, SchoolData.coursesNames[i]);
                 ps.setString(2, SchoolData.coursesDescriptions[i]);
@@ -82,9 +105,9 @@ public class DatabaseFiller {
     private void studentsCoursesTableFill() {
 
 
-        String sql = "INSERT INTO student_courses (student_id, course_id) VALUES (?,?)";
+        String insertStudentCoursesQuery = "INSERT INTO student_courses (student_id, course_id) VALUES (?,?)";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(insertStudentCoursesQuery, Statement.RETURN_GENERATED_KEYS)) {
 
             for (int studentId = 1; studentId <= 200; studentId++) {
                 Set<Integer> assignedCourses = new HashSet<>();

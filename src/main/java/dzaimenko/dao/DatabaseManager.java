@@ -1,4 +1,4 @@
-package dzaimenko;
+package dzaimenko.dao;
 
 import dzaimenko.util.DatabaseConnector;
 import dzaimenko.util.SchoolData;
@@ -320,7 +320,7 @@ public class DatabaseManager {
     }
 
     public void shutdown() {
-        DatabaseConnector.closeConnection(DatabaseConnector.connect());
+        DatabaseConnector.closeConnection();
         System.out.println("""
                 Exiting the program
                 """);

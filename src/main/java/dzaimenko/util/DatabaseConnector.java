@@ -1,41 +1,65 @@
 package dzaimenko.util;
 
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.Properties;
 
 public class DatabaseConnector {
 
     private DatabaseConnector() {
 
     }
-    public static final String URL = "jdbc:postgresql://localhost:5432/school_db?currentSchema=school_management";
-    public static final String USER = "school_manager";
-    public static final String PASSWORD = "1234";
+
+    private static final String PROPERTY_FILE = "db.properties";
+    private static final String URL = "db.url";
+    private static final String USER = "db.user";
+    private static final String PASSWORD = "db.password";
+    private static final String SCHEMA = "db.schema";
+    private static final Properties properties = new Properties();
+    private static Connection connection;
+
+    static {
+        try (InputStream input = DatabaseConnector.class.getClassLoader().getResourceAsStream(PROPERTY_FILE)) {
+            properties.load(input);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load properties file", e);
+        }
+    }
 
     public static Connection connect() {
 
         try {
-            Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            if (connection == null || connection.isClosed()) {
+                try {
+                    connection = DriverManager.getConnection(
+                            properties.getProperty(URL),
+                            properties.getProperty(USER),
+                            properties.getProperty(PASSWORD)
+                    );
+                    connection.setSchema(properties.getProperty(SCHEMA));
 
-            try (Statement statement = connection.createStatement()) {
-                statement.execute("SET search_path TO school_management, public");
-            }
-            return connection;
+                    return connection;
+
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+
+            } else return connection;
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void closeConnection(Connection connection) {
+    public static void closeConnection() {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to close the database connection", e);
         }
     }
 
