@@ -1,9 +1,11 @@
 package dzaimenko;
 
 import dzaimenko.dao.CourseDAO;
-import dzaimenko.dao.DatabaseManager;
+import dzaimenko.dao.StudentDAO;
 import dzaimenko.dao.impl.CourseDAOImpl;
+import dzaimenko.dao.impl.StudentDAOImpl;
 import dzaimenko.util.DatabaseConnector;
+import dzaimenko.util.SchoolData;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,16 +23,14 @@ public class Main {
     private static final String MAIN_MENU_REQUEST = """
             ______________________________________________________________
             Enter a request from 1 to 6 or 0 to complete the job:
-                        
             1. Find all groups with less or equal students’ number
             2. Find all students related to the course with the given name
             3. Add a new student
             4. Delete a student by the STUDENT_ID
             5. Add a student to the course (from a list)
-            6. Remove the student from one of their courses                                    
-            0. Exit
-                            
-            Enter the number of the selected request:""";
+            6. Remove the student from one of their courses
+            0. Exit Enter the number of the selected request:
+            """;
 
 
     public static void main(String[] args) {
@@ -41,17 +41,17 @@ public class Main {
              Statement statement = connection.createStatement();
              Scanner scanner = new Scanner(System.in)) {
 
-            DatabaseManager databaseManager = new DatabaseManager(connection);
             CourseDAO courseDAO = new CourseDAOImpl(connection);
+            StudentDAO studentDAO = new StudentDAOImpl(connection, scanner);
 
             Map<Integer, Runnable> options = new HashMap<>();
             options.put(1, courseDAO::findGroupsByMaxStudentsCount);
-            options.put(2, databaseManager::findStudentsByCourseName);
-            options.put(3, databaseManager::addNewStudent);
-            options.put(4, databaseManager::deleteStudentById);
-            options.put(5, databaseManager::addStudentToCourse);
-            options.put(6, databaseManager::removeStudentFromCourse);
-            options.put(0, databaseManager::shutdown);
+            options.put(2, studentDAO::findStudentsByCourseName);
+            options.put(3, studentDAO::addNewStudent);
+            options.put(4, studentDAO::deleteStudentById);
+            options.put(5, studentDAO::addStudentToCourse);
+            options.put(6, studentDAO::removeStudentFromCourse);
+            options.put(0, Main::shutdown);
 
             executeSqlScript(statement, sqlScriptPath);
             fillDatabase(connection);
@@ -119,6 +119,48 @@ public class Main {
                 break;
             }
         }
+    }
+
+    public static int validateNumericInput(Scanner scanner, String prompt, int lowerBound, int upperBound) {
+
+        int maxRequests = 0;
+        final int maxAttempts = 3;
+        int option = -1;
+
+        while (maxRequests < maxAttempts) {
+            System.out.println(prompt);
+
+            try {
+                option = Integer.parseInt(scanner.nextLine());
+
+                if (option >= lowerBound && option <= upperBound) {
+                    return option;
+                } else {
+                    System.out.println("Invalid input. Please enter a number within the specified range.");
+                    maxRequests++;
+                }
+            } catch (NumberFormatException e) {
+                if (maxRequests < maxAttempts - 1) {
+                    System.out.println("Invalid input. Please enter a valid numeric request. Try again.");
+                }
+                maxRequests++;
+            }
+
+            if (maxRequests == maxAttempts) {
+                System.out.println("You have entered incorrect instructions multiple times. Exiting the program.");
+                System.exit(0);
+            }
+        }
+
+        return option;
+    }
+
+    public static void shutdown() {
+        DatabaseConnector.closeConnection();
+        System.out.println("""
+                Exiting the program
+                """);
+        System.exit(0);
     }
 
 }

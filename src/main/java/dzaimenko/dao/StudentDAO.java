@@ -1,4 +1,11 @@
 package dzaimenko.dao;
 
-public class StudentDAO {
+public interface StudentDAO {
+
+    void findStudentsByCourseName();
+    void addNewStudent();
+    void deleteStudentById();
+    void addStudentToCourse();
+    void removeStudentFromCourse();
+
 }

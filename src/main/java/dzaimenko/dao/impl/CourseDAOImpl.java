@@ -9,7 +9,7 @@ import java.sql.SQLException;
 
 public class CourseDAOImpl implements CourseDAO {
 
-    private Connection connection;
+    private final Connection connection;
 
     public CourseDAOImpl(Connection connection) {
         this.connection = connection;
