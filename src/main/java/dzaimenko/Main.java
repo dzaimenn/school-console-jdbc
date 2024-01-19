@@ -29,8 +29,9 @@ public class Main {
             4. Delete a student by the STUDENT_ID
             5. Add a student to the course (from a list)
             6. Remove the student from one of their courses
-            0. Exit Enter the number of the selected request:
-            """;
+            0. Exit
+            
+            Enter the number of the selected request:""";
 
 
     public static void main(String[] args) {
