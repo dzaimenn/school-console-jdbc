@@ -2,6 +2,8 @@ package dzaimenko.dao.impl;
 
 import dzaimenko.Main;
 import dzaimenko.dao.StudentDAO;
+import dzaimenko.model.Course;
+import dzaimenko.model.Student;
 import dzaimenko.util.SchoolData;
 
 import java.sql.Connection;
@@ -13,19 +15,11 @@ import java.util.Scanner;
 public class StudentDAOImpl implements StudentDAO {
 
     private final Connection connection;
-    private final Scanner scanner;
-    private int totalStudents;
-    public StudentDAOImpl(Connection connection, Scanner scanner) {
+
+    public StudentDAOImpl(Connection connection) {
         this.connection = connection;
-        this.scanner = scanner;
     }
-
-    public void findStudentsByCourseName() {
-
-        showAllCourses();
-
-        String prompt = "Enter course number:";
-        String course = SchoolData.coursesNames[(Main.validateNumericInput(scanner, prompt, 1, 10) - 1)];
+    public void findStudentsByCourseName(String course) {
 
         String sqlFindStudentsByCourse = """
                 SELECT students.student_id, students.first_name, students.last_name
@@ -35,8 +29,6 @@ public class StudentDAOImpl implements StudentDAO {
                 WHERE courses.course_name = ?
                 """;
 
-        System.out.println("Students studying " + course);
-
         try (PreparedStatement ps = connection.prepareStatement(sqlFindStudentsByCourse)) {
             ps.setString(1, course);
 
@@ -45,10 +37,15 @@ public class StudentDAOImpl implements StudentDAO {
                 int studentNumber = 0;
 
                 while (rs.next()) {
+
                     String studentFirstName = rs.getString("first_name");
                     String studentLastName = rs.getString("last_name");
+
+                    Student student = new Student(studentFirstName, studentLastName);
+
                     studentNumber++;
-                    System.out.println(studentNumber + ". " + studentFirstName + " " + studentLastName);
+
+                    System.out.println(studentNumber + ". " + student.getFirstName() + " " + student.getLastName());
                 }
             }
         } catch (SQLException e) {
@@ -57,13 +54,9 @@ public class StudentDAOImpl implements StudentDAO {
     }
 
 
-    public void addNewStudent() {
+    public void addNewStudent(String firstName, String lastName) {
 
-        System.out.println("Enter the first name of the new student:");
-        String firstName = scanner.nextLine();
-
-        System.out.println("Enter the last name of the new student:");
-        String lastName = scanner.nextLine();
+        Student student = new Student(firstName, lastName);
 
         String sqlAddNewStudent = """
                 INSERT INTO students (first_name, last_name)
@@ -71,46 +64,21 @@ public class StudentDAOImpl implements StudentDAO {
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sqlAddNewStudent)) {
-            ps.setString(1, firstName);
-            ps.setString(2, lastName);
+            ps.setString(1, student.getFirstName());
+            ps.setString(2, student.getLastName());
 
-            int rowsAffected = ps.executeUpdate();
-
-            if (rowsAffected > 0) {
-                System.out.println("Added new student");
-            } else {
-                System.out.println("Failed to add new student");
-            }
+            ps.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private int getNumberOfStudents() {
 
-        String sqlGetNumberOfStudents = "SELECT COUNT(*) AS total_students FROM students";
-        try (PreparedStatement ps = connection.prepareStatement(sqlGetNumberOfStudents)) {
-            try (ResultSet rs = ps.executeQuery()) {
 
-                if (rs.next()) {
-                    totalStudents = rs.getInt("total_students");
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public void deleteStudentById(int iD) {
 
-        return totalStudents;
-    }
-
-    public void deleteStudentById() {
-
-        getNumberOfStudents();
-        showAllStudents();
-        String prompt = "Enter the ID of the student to be removed (from 1 to " + totalStudents + "):";
-
-        System.out.println("The school has " + totalStudents + " students");
+        Student student = new Student(iD);
 
         String sqlDeleteStudentById = """
                 WITH deleted_student_courses AS (
@@ -122,19 +90,11 @@ public class StudentDAOImpl implements StudentDAO {
                 WHERE student_id = ?;;
                 """;
 
-        int idStudentToDelete = Main.validateNumericInput(scanner, prompt, 1, totalStudents);
-
         try (PreparedStatement ps = connection.prepareStatement(sqlDeleteStudentById)) {
-            ps.setInt(1, idStudentToDelete);
-            ps.setInt(2, idStudentToDelete);
+            ps.setInt(1, student.getStudentId());
+            ps.setInt(2, student.getStudentId());
 
-            int rowsAffected = ps.executeUpdate();
-
-            if (rowsAffected > 0) {
-                System.out.println("Deleted student");
-            } else {
-                System.out.println("Failed to delete student");
-            }
+            ps.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -142,42 +102,7 @@ public class StudentDAOImpl implements StudentDAO {
 
     }
 
-    private void showAllStudents() {
-        String sqlShowAllStudents = "SELECT * FROM students";
-
-        try (PreparedStatement ps = connection.prepareStatement(sqlShowAllStudents)) {
-            try (ResultSet rs = ps.executeQuery()) {
-
-                while (rs.next()) {
-                    int studentId = rs.getInt("student_id");
-                    String firstName = rs.getString("first_name");
-                    String lastName = rs.getString("last_name");
-
-                    System.out.println("ID: " + studentId + ", Student: " + firstName + " " + lastName);
-                }
-
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void showAllCourses() {
-        for (int i = 0; i < 10; i++) {
-            System.out.println((i + 1) + ". " + SchoolData.coursesNames[i]);
-        }
-    }
-
-    public void addStudentToCourse() {
-        getNumberOfStudents();
-        showAllStudents();
-
-        String promptStudentAdd = "Enter the student ID to add to the course:";
-        int idStudentToAddToCourse = Main.validateNumericInput(scanner, promptStudentAdd, 1, totalStudents);
-
-        String promptCourseAdd = "Enter course number:";
-        showAllCourses();
-        int idCourse = Main.validateNumericInput(scanner, promptCourseAdd, 1, 10);
+    public void addStudentToCourse(int idStudentToAddToCourse, int idCourse) {
 
         String sqlAddStudentToCourse = """
                 INSERT INTO student_courses (student_id, course_id)
@@ -188,54 +113,13 @@ public class StudentDAOImpl implements StudentDAO {
             ps.setInt(1, idStudentToAddToCourse);
             ps.setInt(2, idCourse);
 
-            int rowsAffected = ps.executeUpdate();
-
-            if (rowsAffected > 0) {
-                System.out.println("Student successfully added to the course");
-            } else {
-                System.out.println("Failed to add student to the course");
-            }
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
     }
 
-    private void showCoursesForStudent(int studentId) {
-
-        String sqlSelectCourses = """
-                SELECT courses.course_id, courses.course_name
-                FROM student_courses
-                JOIN courses ON student_courses.course_id = courses.course_id
-                WHERE student_courses.student_id = ?;
-                """;
-
-        try (PreparedStatement psSelectCourses = connection.prepareStatement(sqlSelectCourses)) {
-            psSelectCourses.setInt(1, studentId);
-
-            ResultSet resultSet = psSelectCourses.executeQuery();
-
-            while (resultSet.next()) {
-                System.out.println(resultSet.getInt("course_id") + ". "
-                                   + resultSet.getString("course_name"));
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void removeStudentFromCourse() {
-        getNumberOfStudents();
-        showAllStudents();
-
-        String promptStudentRemove = "Enter the student ID to remove from the course:";
-        int idStudentToRemoveFromCourse = Main.validateNumericInput(scanner, promptStudentRemove, 1, totalStudents);
-
-        String promptCourseRemove = "Enter course ID:";
-        showCoursesForStudent(idStudentToRemoveFromCourse);
-        int idCourse = Main.validateNumericInput(scanner, promptCourseRemove, 1, 10);
+    public void removeStudentFromCourse(int idStudentToRemoveFromCourse, int idCourse) {
 
         String sqlRemoveStudentFromCourse = """
                 DELETE FROM student_courses
@@ -246,13 +130,7 @@ public class StudentDAOImpl implements StudentDAO {
             ps.setInt(1, idStudentToRemoveFromCourse);
             ps.setInt(2, idCourse);
 
-            int rowsAffected = ps.executeUpdate();
-
-            if (rowsAffected > 0) {
-                System.out.println("Student successfully removed from the course");
-            } else {
-                System.out.println("Failed to remove student from the course");
-            }
+            ps.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException(e);

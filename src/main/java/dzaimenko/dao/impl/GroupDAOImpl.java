@@ -1,23 +1,24 @@
 package dzaimenko.dao.impl;
 
-import dzaimenko.dao.CourseDAO;
+import dzaimenko.dao.GroupDAO;
+import dzaimenko.model.Group;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class CourseDAOImpl implements CourseDAO {
+public class GroupDAOImpl implements GroupDAO {
 
     private final Connection connection;
 
-    public CourseDAOImpl(Connection connection) {
+    public GroupDAOImpl(Connection connection) {
         this.connection = connection;
     }
 
-    public void findGroupsByMaxStudentsCount() {
+    public void findGroupsByMinStudentsCount() {
 
-        String sql = """
+        String sqlFindGroupsByMaxStudentsCount = """
                 WITH GroupStudentCount AS (
                     SELECT g.group_id, g.group_name, COUNT(s.student_id) as student_count
                     FROM groups g
@@ -28,17 +29,16 @@ public class CourseDAOImpl implements CourseDAO {
                 FROM GroupStudentCount
                 WHERE student_count = (SELECT MIN(student_count) FROM GroupStudentCount);
                 """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sqlFindGroupsByMaxStudentsCount)) {
 
             try (ResultSet rs = ps.executeQuery()) {
 
                 while (rs.next()) {
 
-                    int groupId = rs.getInt("group_id");
-                    String groupName = rs.getString("group_name");
+                    Group group = new Group(rs.getInt("group_id"), rs.getString("group_name"));
                     int studentCount = rs.getInt("student_count");
 
-                    System.out.println("Group ID: " + groupId + ", Group Name: " + groupName + ", Student Count: " + studentCount);
+                    System.out.println("Group ID: " + group.getGroupName() + ", Group Name: " + group.getGroupName() + ", Student Count: " + studentCount);
                 }
             }
         } catch (SQLException e) {

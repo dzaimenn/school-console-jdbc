@@ -9,6 +9,11 @@ public class Group {
         this.groupName = groupName;
     }
 
+    public Group(int groupId, String groupName) {
+        this.groupId = groupId;
+        this.groupName = groupName;
+    }
+
     public int getGroupId() {
         return groupId;
     }

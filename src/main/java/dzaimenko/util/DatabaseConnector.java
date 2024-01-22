@@ -1,6 +1,7 @@
 package dzaimenko.util;
 
-import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -8,49 +9,30 @@ import java.util.Properties;
 
 public class DatabaseConnector {
 
-    private DatabaseConnector() {
-
-    }
-
-    private static final String PROPERTY_FILE = "db.properties";
-    private static final String URL = "db.url";
-    private static final String USER = "db.user";
-    private static final String PASSWORD = "db.password";
-    private static final String SCHEMA = "db.schema";
-    private static final Properties properties = new Properties();
+    private static final DatabaseConnector INSTANCE = new DatabaseConnector();
     private static Connection connection;
 
-    static {
-        try (InputStream input = DatabaseConnector.class.getClassLoader().getResourceAsStream(PROPERTY_FILE)) {
-            properties.load(input);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load properties file", e);
+    private DatabaseConnector() {
+        try (FileInputStream fis = new FileInputStream("src/main/resources/db.properties")) {
+            Properties properties = new Properties();
+            properties.load(fis);
+
+            connection = DriverManager.getConnection(
+                    properties.getProperty("db.url"),
+                    properties.getProperty("db.user"),
+                    properties.getProperty("db.password")
+            );
+        } catch (IOException | SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    public static Connection connect() {
+    public static DatabaseConnector getInstance() {
+        return INSTANCE;
+    }
 
-        try {
-            if (connection == null || connection.isClosed()) {
-                try {
-                    connection = DriverManager.getConnection(
-                            properties.getProperty(URL),
-                            properties.getProperty(USER),
-                            properties.getProperty(PASSWORD)
-                    );
-                    connection.setSchema(properties.getProperty(SCHEMA));
-
-                    return connection;
-
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-
-            } else return connection;
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public Connection getConnection() {
+        return connection;
     }
 
     public static void closeConnection() {
