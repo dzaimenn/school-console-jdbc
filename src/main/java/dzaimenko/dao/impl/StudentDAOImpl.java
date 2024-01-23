@@ -1,16 +1,12 @@
 package dzaimenko.dao.impl;
 
-import dzaimenko.Main;
 import dzaimenko.dao.StudentDAO;
-import dzaimenko.model.Course;
 import dzaimenko.model.Student;
-import dzaimenko.util.SchoolData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Scanner;
 
 public class StudentDAOImpl implements StudentDAO {
 
