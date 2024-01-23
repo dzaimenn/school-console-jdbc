@@ -1,7 +1,11 @@
 package dzaimenko.dao;
 
+import dzaimenko.model.Group;
+
+import java.util.Map;
+
 public interface GroupDAO {
 
-    void findGroupsByMinStudentsCount();
+    Map<Group, Integer> findGroupsByMinStudentsCount();
 
 }

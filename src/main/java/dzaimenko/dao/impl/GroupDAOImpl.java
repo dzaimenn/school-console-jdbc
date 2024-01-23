@@ -7,6 +7,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GroupDAOImpl implements GroupDAO {
 
@@ -16,7 +20,9 @@ public class GroupDAOImpl implements GroupDAO {
         this.connection = connection;
     }
 
-    public void findGroupsByMinStudentsCount() {
+    public Map<Group, Integer> findGroupsByMinStudentsCount() {
+
+        Map<Group, Integer> groups = new HashMap<>();
 
         String sqlFindGroupsByMaxStudentsCount = """
                 WITH GroupStudentCount AS (
@@ -38,12 +44,13 @@ public class GroupDAOImpl implements GroupDAO {
                     Group group = new Group(rs.getInt("group_id"), rs.getString("group_name"));
                     int studentCount = rs.getInt("student_count");
 
-                    System.out.println("Group ID: " + group.getGroupName() + ", Group Name: " + group.getGroupName() + ", Student Count: " + studentCount);
+                    groups.put(group, studentCount);
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        return groups;
     }
 
 }

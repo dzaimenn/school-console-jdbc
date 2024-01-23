@@ -6,6 +6,7 @@ import dzaimenko.dao.StudentDAO;
 import dzaimenko.dao.impl.GroupDAOImpl;
 import dzaimenko.dao.impl.StudentDAOImpl;
 import dzaimenko.model.Course;
+import dzaimenko.model.Group;
 import dzaimenko.model.Student;
 
 
@@ -83,10 +84,22 @@ public class MenuManager {
 
     public void menuFindGroupsByMinStudentsCount() {
 
-        System.out.println("Groups with less or equal students");
+        System.out.println("Groups with less or equal students:");
 
         GroupDAO groupDAO = new GroupDAOImpl(connection);
-        groupDAO.findGroupsByMinStudentsCount();
+        Map<Group, Integer> groups = groupDAO.findGroupsByMinStudentsCount();
+
+        if (groups.isEmpty()) {
+            System.out.println("No groups found");
+            return;
+        }
+
+        for (Map.Entry<Group, Integer> entry : groups.entrySet()) {
+            Group group = entry.getKey();
+            int studentCount = entry.getValue();
+
+            System.out.println("Group ID: " + group.getGroupId() + ", Group name: " + group.getGroupName() + ", Students count: " + studentCount);
+        }
 
     }
 
@@ -101,7 +114,7 @@ public class MenuManager {
         List<Student> students = studentDAO.findStudentsByCourseName(course);
 
         if (students.isEmpty()) {
-            System.out.println("No students found for the given course.");
+            System.out.println("No students found for the given course");
             return;
         }
 
