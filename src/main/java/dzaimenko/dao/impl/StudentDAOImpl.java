@@ -53,16 +53,14 @@ public class StudentDAOImpl implements StudentDAO {
 
     public void addNewStudent(String firstName, String lastName) {
 
-        Student student = new Student(firstName, lastName);
-
         String sqlAddNewStudent = """
                 INSERT INTO students (first_name, last_name)
                 VALUES (?,?);
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sqlAddNewStudent)) {
-            ps.setString(1, student.getFirstName());
-            ps.setString(2, student.getLastName());
+            ps.setString(1, firstName);
+            ps.setString(2, lastName);
 
             ps.executeUpdate();
 
@@ -75,8 +73,6 @@ public class StudentDAOImpl implements StudentDAO {
 
     public void deleteStudentById(int iD) {
 
-        Student student = new Student(iD);
-
         String sqlDeleteStudentById = """
                 WITH deleted_student_courses AS (
                     DELETE FROM student_courses
@@ -88,8 +84,8 @@ public class StudentDAOImpl implements StudentDAO {
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sqlDeleteStudentById)) {
-            ps.setInt(1, student.getStudentId());
-            ps.setInt(2, student.getStudentId());
+            ps.setInt(1, iD);
+            ps.setInt(2, iD);
 
             ps.executeUpdate();
 
