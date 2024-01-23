@@ -28,7 +28,6 @@ public class Main {
 
             Map<Integer, Runnable> options = new HashMap<>();
             MenuManager menuManager = new MenuManager(options, connection, scanner);
-            GroupDAO courseDAO = new GroupDAOImpl(connection);
 
             options.put(1, menuManager::menuFindGroupsByMinStudentsCount);
             options.put(2, menuManager::menuFindStudentsByCourseName);

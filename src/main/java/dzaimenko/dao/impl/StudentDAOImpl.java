@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StudentDAOImpl implements StudentDAO {
 
@@ -15,7 +17,9 @@ public class StudentDAOImpl implements StudentDAO {
     public StudentDAOImpl(Connection connection) {
         this.connection = connection;
     }
-    public void findStudentsByCourseName(String course) {
+    public List<Student> findStudentsByCourseName(String course) {
+
+        List<Student> students = new ArrayList<>();
 
         String sqlFindStudentsByCourse = """
                 SELECT students.student_id, students.first_name, students.last_name
@@ -30,23 +34,20 @@ public class StudentDAOImpl implements StudentDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
 
-                int studentNumber = 0;
-
                 while (rs.next()) {
 
                     String studentFirstName = rs.getString("first_name");
                     String studentLastName = rs.getString("last_name");
 
                     Student student = new Student(studentFirstName, studentLastName);
-
-                    studentNumber++;
-
-                    System.out.println(studentNumber + ". " + student.getFirstName() + " " + student.getLastName());
+                    students.add(student);
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
+        return students;
     }
 
 

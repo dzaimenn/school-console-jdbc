@@ -1,8 +1,12 @@
 package dzaimenko.dao;
 
+import dzaimenko.model.Student;
+
+import java.util.List;
+
 public interface StudentDAO {
 
-    void findStudentsByCourseName(String course);
+    List<Student> findStudentsByCourseName(String course);
     void addNewStudent(String firstname, String lastName);
     void deleteStudentById(int iD);
     void addStudentToCourse(int idStudentToAddToCourse, int idCourse);

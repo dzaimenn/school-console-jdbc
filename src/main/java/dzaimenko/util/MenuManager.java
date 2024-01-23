@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -96,11 +97,19 @@ public class MenuManager {
         String courseNumberPrompt = "Enter course number:";
         String course = SchoolData.coursesNames[(Main.validateNumericInput(scanner, courseNumberPrompt, 1, 10) - 1)];
 
-        System.out.println("Students studying " + course);
+        StudentDAO studentDAO = new StudentDAOImpl(connection);
+        List<Student> students = studentDAO.findStudentsByCourseName(course);
 
-        StudentDAO student = new StudentDAOImpl(connection);
-        student.findStudentsByCourseName(course);
+        if (students.isEmpty()) {
+            System.out.println("No students found for the given course.");
+            return;
+        }
 
+        System.out.println("Students studying " + course+ ":");
+        for (int i = 0; i < students.size(); i++) {
+            Student student = students.get(i);
+            System.out.println((i + 1) + ". " + student.getFirstName() + " " + student.getLastName());
+        }
     }
 
     private void showAllCourses() {
