@@ -1,7 +1,5 @@
 package dzaimenko;
 
-import dzaimenko.dao.GroupDAO;
-import dzaimenko.dao.impl.GroupDAOImpl;
 import dzaimenko.util.DatabaseConnector;
 import dzaimenko.util.MenuManager;
 
