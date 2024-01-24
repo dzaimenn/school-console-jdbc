@@ -39,7 +39,11 @@ public class GroupDAOImpl implements GroupDAO {
 
                 while (rs.next()) {
 
-                    Group group = new Group(rs.getInt("group_id"), rs.getString("group_name"));
+                    Group group = Group.builder()
+                            .groupId(rs.getInt("group_id"))
+                            .groupName(rs.getString("group_name"))
+                            .build();
+
                     int studentCount = rs.getInt("student_count");
 
                     groups.put(group, studentCount);

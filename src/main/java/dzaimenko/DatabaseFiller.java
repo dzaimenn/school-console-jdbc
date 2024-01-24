@@ -34,7 +34,9 @@ public class DatabaseFiller {
         try (PreparedStatement ps = connection.prepareStatement(insertGroupsQuery, Statement.RETURN_GENERATED_KEYS)) {
             for (int i = 0; i < 10; i++) {
 
-                Group group = new Group(SchoolData.groupsNames[i]);
+                Group group = Group.builder()
+                        .groupName(SchoolData.groupsNames[i])
+                        .build();
 
                 ps.setString(1, group.getGroupName());
                 ps.executeUpdate();
@@ -65,7 +67,11 @@ public class DatabaseFiller {
                 String firstName = SchoolData.firstNamesArray[random.nextInt(20)];
                 String lastName = SchoolData.lastNamesArray[random.nextInt(20)];
 
-                Student student = new Student(groupId, firstName, lastName);
+                Student student = Student.builder()
+                        .groupId(groupId)
+                        .firstName(firstName)
+                        .lastName(lastName)
+                        .build();
 
                 ps.setInt(1, student.getGroupId());
                 ps.setString(2, student.getFirstName());
@@ -95,7 +101,10 @@ public class DatabaseFiller {
 
             for (int i = 0; i < 10; i++) {
 
-                Course course = new Course(SchoolData.coursesNames[i], SchoolData.coursesDescriptions[i]);
+                Course course = Course.builder()
+                        .courseName(SchoolData.coursesNames[i])
+                        .courseDescription(SchoolData.coursesDescriptions[i])
+                        .build();
 
                 ps.setString(1, course.getCourseName());
                 ps.setString(2, course.getCourseDescription());

@@ -1,8 +1,10 @@
 package dzaimenko.model;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+@Builder
 @Getter
 @Setter
 public class Student {
@@ -11,20 +13,5 @@ public class Student {
     private int groupId;
     private String firstName;
     private String lastName;
-
-    public Student(int groupId, String firstName, String lastName) {
-        this.groupId = groupId;
-        this.firstName = firstName;
-        this.lastName = lastName;
-    }
-
-    public Student(String firstName, String lastName) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-    }
-
-    public Student(int studentId) {
-        this.studentId = studentId;
-    }
 
 }

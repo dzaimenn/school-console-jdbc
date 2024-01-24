@@ -39,7 +39,11 @@ public class StudentDAOImpl implements StudentDAO {
                     String studentFirstName = rs.getString("first_name");
                     String studentLastName = rs.getString("last_name");
 
-                    Student student = new Student(studentFirstName, studentLastName);
+                    Student student = Student.builder()
+                            .firstName(studentFirstName)
+                            .lastName(studentLastName)
+                            .build();
+
                     students.add(student);
                 }
             }
@@ -71,7 +75,7 @@ public class StudentDAOImpl implements StudentDAO {
 
 
 
-    public void deleteStudentById(int iD) {
+    public void deleteStudentById(int studentId) {
 
         String sqlDeleteStudentById = """
                 WITH deleted_student_courses AS (
@@ -84,8 +88,8 @@ public class StudentDAOImpl implements StudentDAO {
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sqlDeleteStudentById)) {
-            ps.setInt(1, iD);
-            ps.setInt(2, iD);
+            ps.setInt(1, studentId);
+            ps.setInt(2, studentId);
 
             ps.executeUpdate();
 
@@ -95,7 +99,7 @@ public class StudentDAOImpl implements StudentDAO {
 
     }
 
-    public void addStudentToCourse(int idStudentToAddToCourse, int idCourse) {
+    public void addStudentToCourse(int studentId, int courseId) {
 
         String sqlAddStudentToCourse = """
                 INSERT INTO student_courses (student_id, course_id)
@@ -103,8 +107,10 @@ public class StudentDAOImpl implements StudentDAO {
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sqlAddStudentToCourse)) {
-            ps.setInt(1, idStudentToAddToCourse);
-            ps.setInt(2, idCourse);
+            ps.setInt(1, studentId);
+            ps.setInt(2, courseId);
+
+            ps.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException(e);

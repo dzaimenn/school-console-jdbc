@@ -209,8 +209,6 @@ public class MenuManager {
 
     private void showCoursesForStudent(int studentId) {
 
-        Student student = new Student(studentId);
-
         String sqlSelectCourses = """
                 SELECT courses.course_id, courses.course_name
                 FROM student_courses
@@ -219,12 +217,16 @@ public class MenuManager {
                 """;
 
         try (PreparedStatement psSelectCourses = connection.prepareStatement(sqlSelectCourses)) {
-            psSelectCourses.setInt(1, student.getStudentId());
+            psSelectCourses.setInt(1, studentId);
 
             ResultSet resultSet = psSelectCourses.executeQuery();
 
             while (resultSet.next()) {
-                Course course = new Course(resultSet.getInt("course_id"), resultSet.getString("course_name"));
+
+                Course course = Course.builder()
+                        .courseId(resultSet.getInt("course_id"))
+                        .courseName(resultSet.getString("course_name"))
+                        .build();
 
                 System.out.println(course.getCourseId() + ". " + course.getCourseName());
             }

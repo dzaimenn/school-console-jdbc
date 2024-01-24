@@ -1,8 +1,10 @@
 package dzaimenko.model;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+@Builder
 @Getter
 @Setter
 public class Course {
@@ -10,16 +12,5 @@ public class Course {
     private int courseId;
     private String courseName;
     private String courseDescription;
-
-    public Course(String courseName, String courseDescription) {
-        this.courseName = courseName;
-        this.courseDescription = courseDescription;
-    }
-
-
-    public Course(int courseId, String courseName) {
-        this.courseId = courseId;
-        this.courseName = courseName;
-    }
 
 }
